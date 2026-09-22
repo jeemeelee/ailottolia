@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AILOTTOLIA</title>
+<meta name="description" content="AILOTTOLIA - AI Lotto Number Pick">
+<style>
+:root{--blue:#1668f2;--dark:#0c54cf;--bg:#f5f8ff;--text:#14213d;--muted:#6c7a96;--border:#e4ebf7}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#eef4ff,#fff 58%);color:var(--text);min-height:100vh}
+header{width:min(1100px,92%);margin:auto;padding:26px 0;display:flex;justify-content:space-between;align-items:center}.logo{font-size:26px;font-weight:800;color:var(--blue)}
+nav a{text-decoration:none;color:var(--muted);margin-left:24px;font-size:14px;font-weight:700}
+main{width:min(980px,92%);margin:42px auto 80px;text-align:center}.eyebrow{color:var(--blue);font-size:13px;font-weight:800;letter-spacing:1.8px;margin-bottom:12px}
+h1{margin:0;font-size:clamp(34px,6vw,64px);line-height:1.05}.sub{max-width:620px;margin:18px auto 28px;color:var(--muted);line-height:1.7}
+button{border:0;border-radius:14px;background:var(--blue);color:#fff;font-size:18px;font-weight:800;padding:18px 34px;cursor:pointer;box-shadow:0 14px 30px rgba(22,104,242,.22)}
+button:hover{background:var(--dark)}.panel{margin-top:36px;background:#fff;border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 22px 60px rgba(38,73,125,.08);min-height:180px;display:flex;flex-direction:column;justify-content:center}
+.placeholder{color:#95a2b8;font-size:15px}.games{display:grid;gap:14px}.game{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding:14px 12px;border-radius:16px;background:#f9fbff}
+.game-label{width:62px;text-align:left;font-size:13px;color:var(--muted);font-weight:800}.balls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.ball{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:inset 0 -3px rgba(0,0,0,.08),0 6px 14px rgba(0,0,0,.08)}
+.yellow{background:#f2b705;color:#322400}.blue{background:#3487e8}.red{background:#ef5a5a}.gray{background:#8b96a8}.green{background:#43a96b}
+footer{width:min(980px,92%);margin:auto;padding:0 0 34px;text-align:center;color:#9aa6ba;font-size:12px}
+@media(max-width:640px){nav{display:none}.panel{padding:18px}.game-label{width:100%;text-align:center}.ball{width:38px;height:38px}button{width:100%;max-width:380px}}
+</style></head>
+<body>
+<header><div class="logo">AILOTTOLIA</div><nav><a href="#pick">NUMBER PICK</a><a href="#about">ABOUT</a></nav></header>
+<main id="pick"><div class="eyebrow">SMART NUMBER GENERATOR</div><h1>AI LOTTO<br>NUMBER PICK</h1>
+<p class="sub">버튼을 누르면 1부터 45까지의 숫자 중 중복 없이 6개씩, 총 5게임의 추천 번호를 확인할 수 있습니다.</p>
+<button id="generateBtn">추천 번호 생성</button>
+<section class="panel" aria-live="polite"><div id="placeholder" class="placeholder">추천 번호 생성 버튼을 누르면 5게임이 표시됩니다.</div><div id="games" class="games" hidden></div></section></main>
+<footer id="about">AILOTTOLIA는 무작위 번호 조합을 제공하며 당첨을 보장하지 않습니다.</footer>
+<script>
+const btn=document.getElementById('generateBtn'),games=document.getElementById('games'),ph=document.getElementById('placeholder');
+function pick(){const p=Array.from({length:45},(_,i)=>i+1);for(let i=44;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}return p.slice(0,6).sort((a,b)=>a-b)}
+function cls(n){return n<=10?'yellow':n<=20?'blue':n<=30?'red':n<=40?'gray':'green'}
+btn.onclick=()=>{games.innerHTML=Array.from({length:5},(_,i)=>{const ns=pick();return '<div class="game"><div class="game-label">GAME '+(i+1)+'</div><div class="balls">'+ns.map(n=>'<div class="ball '+cls(n)+'">'+n+'</div>').join('')+'</div></div>'}).join('');ph.hidden=true;games.hidden=false;btn.textContent='다시 생성하기'};
+</script></body></html>
