@@ -1,1 +1,247 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>AILOTTOLIA ADMIN</title><style>:root{--b:#1668f2;--t:#14213d;--m:#6c7a96;--bd:#e4ebf7}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f8ff;color:var(--t)}header{background:#fff;border-bottom:1px solid var(--bd);padding:20px 4%;font-size:22px;font-weight:900;color:var(--b)}main{width:min(1100px,92%);margin:34px auto}p{color:var(--m)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:22px;margin-top:18px}.label{font-size:13px;color:var(--m)}.value{font-size:30px;font-weight:900;margin-top:10px}.grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px}textarea{width:100%;min-height:220px;border:1px solid var(--bd);border-radius:14px;padding:16px;font:inherit;resize:vertical}button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:800;padding:14px 22px;cursor:pointer;float:right;margin-top:12px}.note{font-size:12px;color:#9aa6ba;margin-top:8px}@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}@media(max-width:430px){.stats{grid-template-columns:1fr}}</style></head><body><header>AILOTTOLIA ADMIN</header><main><h1>관리자 대시보드</h1><p>방문 현황을 확인하고 매주 번호 생성 프롬프트를 관리합니다.</p><section class="stats"><div class="card"><div class="label">오늘 방문자</div><div class="value">—</div></div><div class="card"><div class="label">이번 주 방문자</div><div class="value">—</div></div><div class="card"><div class="label">전체 방문자</div><div class="value">—</div></div><div class="card"><div class="label">번호 생성 횟수</div><div class="value">—</div></div></section><section class="grid"><div class="card"><h2>지역별 방문자</h2><p>대한민국　—</p><p>미국　—</p><p>일본　—</p><p>기타　—</p><div class="note">통계 연결 후 자동 표시됩니다.</div></div><div class="card"><h2>이번 주 번호 생성 프롬프트</h2><textarea placeholder="여기에 매주 적용할 프롬프트를 입력하세요."></textarea><button onclick="alert('다음 단계에서 데이터베이스를 연결하면 저장됩니다.')">저장 및 적용</button><div class="note">현재는 관리자 화면 1단계입니다.</div></div></section></main></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>AILOTTOLIA ADMIN</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{--b:#1668f2;--t:#14213d;--m:#6c7a96;--bd:#e4ebf7}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f5f8ff;color:var(--t)}
+header{background:#fff;border-bottom:1px solid var(--bd);padding:20px 4%;font-size:22px;font-weight:900;color:var(--b)}
+main{width:min(1100px,92%);margin:34px auto}
+p{color:var(--m)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:22px;margin-top:18px}
+.label{font-size:13px;color:var(--m)}
+.value{font-size:30px;font-weight:900;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1.4fr;gap:18px}
+input,textarea{width:100%;border:1px solid var(--bd);border-radius:14px;padding:14px;font:inherit;margin-top:8px}
+textarea{min-height:220px;resize:vertical}
+button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:800;padding:14px 22px;cursor:pointer;margin-top:12px}
+.right{float:right}
+.note{font-size:12px;color:#9aa6ba;margin-top:8px}
+#error{color:#d33;font-size:13px;margin-top:10px}
+#success{color:#16833b;font-size:13px;margin-top:10px}
+#dashboard{display:none}
+@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+@media(max-width:430px){.stats{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+
+<header>AILOTTOLIA ADMIN</header>
+
+<main>
+
+<section id="login" class="card">
+<h2>관리자 로그인</h2>
+<p>관리자 계정으로 로그인하세요.</p>
+
+<input id="email" type="email" placeholder="이메일">
+<input id="password" type="password" placeholder="비밀번호">
+
+<button onclick="login()">로그인</button>
+<div id="error"></div>
+</section>
+
+<div id="dashboard">
+
+<h1>관리자 대시보드</h1>
+<p>방문 현황을 확인하고 매주 번호 생성 프롬프트를 관리합니다.</p>
+
+<button class="right" onclick="logout()">로그아웃</button>
+
+<section class="stats">
+<div class="card">
+<div class="label">오늘 방문자</div>
+<div class="value">—</div>
+</div>
+
+<div class="card">
+<div class="label">이번 주 방문자</div>
+<div class="value">—</div>
+</div>
+
+<div class="card">
+<div class="label">전체 방문자</div>
+<div class="value">—</div>
+</div>
+
+<div class="card">
+<div class="label">번호 생성 횟수</div>
+<div class="value">—</div>
+</div>
+</section>
+
+<section class="grid">
+
+<div class="card">
+<h2>지역별 방문자</h2>
+<p>대한민국　—</p>
+<p>미국　—</p>
+<p>일본　—</p>
+<p>기타　—</p>
+<div class="note">통계 연결 후 자동 표시됩니다.</div>
+</div>
+
+<div class="card">
+<h2>이번 주 번호 생성 프롬프트</h2>
+
+<textarea id="prompt" placeholder="여기에 매주 적용할 프롬프트를 입력하세요."></textarea>
+
+<button class="right" onclick="savePrompt()">저장 및 적용</button>
+
+<div style="clear:both"></div>
+<div id="success"></div>
+
+<div class="note">
+저장하면 AILOTTOLIA의 활성 프롬프트가 변경됩니다.
+</div>
+
+</div>
+</section>
+
+</div>
+</main>
+
+<script>
+
+const SUPABASE_URL = "https://zhrpuxumusbfleuaugzh.supabase.co";
+const SUPABASE_KEY = "sb_publishable_CbbBb4fxUtRg3u1SR8vEnA_ku-gLdQ1";
+
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function checkSession(){
+
+  const {data} = await db.auth.getSession();
+
+  if(data.session){
+    showDashboard();
+  }
+
+}
+
+async function login(){
+
+  document.getElementById("error").textContent = "";
+
+  const email =
+  document.getElementById("email").value;
+
+  const password =
+  document.getElementById("password").value;
+
+  const {error} =
+  await db.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    document.getElementById("error").textContent =
+    "로그인 실패: 이메일 또는 비밀번호를 확인하세요.";
+    return;
+  }
+
+  showDashboard();
+
+}
+
+async function logout(){
+
+  await db.auth.signOut();
+
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("login").style.display="block";
+
+}
+
+async function showDashboard(){
+
+  document.getElementById("login").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+
+  await loadPrompt();
+
+}
+
+async function loadPrompt(){
+
+  const {data,error} = await db
+  .from("weekly_prompts")
+  .select("prompt")
+  .eq("is_active",true)
+  .order("created_at",{ascending:false})
+  .limit(1);
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  if(data && data.length){
+    document.getElementById("prompt").value =
+    data[0].prompt || "";
+  }
+
+}
+
+async function savePrompt(){
+
+  const text =
+  document.getElementById("prompt").value.trim();
+
+  if(!text){
+    alert("프롬프트를 입력하세요.");
+    return;
+  }
+
+  document.getElementById("success").textContent =
+  "저장 중...";
+
+  const {error:updateError} = await db
+  .from("weekly_prompts")
+  .update({is_active:false})
+  .eq("is_active",true);
+
+  if(updateError){
+    document.getElementById("success").textContent =
+    "저장 실패";
+    console.error(updateError);
+    return;
+  }
+
+  const {error} = await db
+  .from("weekly_prompts")
+  .insert({
+    prompt:text,
+    is_active:true
+  });
+
+  if(error){
+    document.getElementById("success").textContent =
+    "저장 실패";
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("success").textContent =
+  "✓ 새 프롬프트가 저장되고 적용되었습니다.";
+
+}
+
+checkSession();
+
+</script>
+
+</body>
+</html>
