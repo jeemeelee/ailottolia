@@ -77,3 +77,35 @@ noindex이고 HTML에는 nonce 기반 CSP가 적용됩니다. 숨긴 URL 자체�
 참고: [Vercel Node.js Functions](https://vercel.com/docs/functions/runtimes/node-js),
 [Vercel 요청 헤더](https://vercel.com/docs/headers/request-headers),
 [Upstash REST API](https://upstash.com/docs/redis/features/restapi).
+
+### Vercel Analytics (선택)
+
+관리자 화면에는 자체 통계와 별도로 Vercel의 최근 7일 방문자/페이지 조회를 표시할 수 있습니다.
+공식 Web Analytics API를 서버에서 조회하며, API 토큰은 브라우저로 전달하지 않습니다.
+연결하지 않아도 기존 자체 통계와 프롬프트 저장은 사용할 수 있습니다.
+
+1. Vercel의 프로젝트 Analytics에서 Enable을 선택합니다.
+2. Analytics의 HTML 설치 안내에서 실제 스크립트 경로를 복사해 `VERCEL_ANALYTICS_SCRIPT_PATH`에 설정합니다.
+   예: `/_vercel/insights/script.js` 또는 프로젝트에 표시되는 고유 경로. 전체 URL이나 `<script>` 태그가 아니라 `/`로 시작하는 경로만 입력합니다.
+   빌드 시 공개 페이지에 추적 스크립트가 추가되며 관리자 화면에는 추가되지 않습니다.
+3. `VERCEL_ANALYTICS_TOKEN`에 해당 프로젝트 조회 권한이 있는 Vercel 액세스 토큰,
+   `VERCEL_ANALYTICS_PROJECT_ID`에 프로젝트 ID를 설정합니다.
+   팀 소유 프로젝트라면 `VERCEL_ANALYTICS_TEAM_ID`도 설정합니다.
+4. 재배포 후 공개 첫 페이지(`/`)에 방문하고 관리자 화면의 통계를 새로고침합니다.
+
+API는 최근 7일의 `/` 방문을 날짜별로 조회합니다. 숫자는 Vercel에서 반환한 값을 그대로 표시하며,
+자체 집계와 합산하지 않습니다. 데이터 없음, 연결 전, 조회 실패를 구분합니다.
+플랜의 조회 가능 기간/권한 및 데이터 반영 지연에 따라 결과가 달라질 수 있습니다.
+Preview 검증에서는 Vercel 프로젝트의 실제 조회 데이터가 나타날 수 있으므로 자체 Preview 집계와 구분하세요.
+추적 경로만 공개 빌드에 포함되며 토큰·프로젝트 조회 설정은 서버에만 남습니다.
+
+공식 문서: [HTML 설치](https://vercel.com/docs/analytics/quickstart),
+[Web Analytics 조회 API](https://vercel.com/docs/analytics/web-analytics-api).
+
+### 이번 보완의 검증 범위
+
+- 인증 및 저장소 모의 응답 기반 9개 자동 검사: 인증 없는 Analytics 접근 차단,
+  Vercel 응답 처리/실패 상태, 기존 로그인·로그아웃·프롬프트 저장 및 번호 생성 포함.
+- 로컬 브라우저에서 모의 API로 로그인, 저장, 페이지 재조회 후 내용 유지, 로그아웃을 확인합니다.
+- 이 검사는 운영 비밀번호, 실제 Redis, 실제 Vercel Analytics 권한 연결 검증을 대신하지 않습니다.
+- 프롬프트 최초 조회 실패 시 저장 버튼을 비활성화하고, 통계 새로고침으로 재조회할 수 있습니다.

@@ -1,5 +1,6 @@
 import { configured, equal, digest, token, cookie, sessionCookie, authenticated, sameOrigin, ip, limited, redis, key, TTL, headers, json, body, day } from '../lib/core.js';
 import { page } from '../lib/admin-page.js';
+import { analytics } from '../lib/vercel-analytics.js';
 
 export default async function handler(req, res) {
   headers(res);
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
       return res.end(page(authorized, nonce));
     }
     if (!authorized) return json(res, 401, { error: '관리자 로그인이 필요합니다.' });
+    if (action === 'analytics') return json(res, 200, await analytics());
     if (action === 'stats') {
       const dates = Array.from({ length: 7 }, (_, i) => new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
       const days = await Promise.all(dates.map(async date => {
