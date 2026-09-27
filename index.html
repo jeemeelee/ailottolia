@@ -31,4 +31,4 @@ const btn=document.getElementById('generateBtn'),games=document.getElementById('
 function pick(){const p=Array.from({length:45},(_,i)=>i+1);for(let i=44;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}return p.slice(0,6).sort((a,b)=>a-b)}
 function cls(n){return n<=10?'yellow':n<=20?'blue':n<=30?'red':n<=40?'gray':'green'}
 btn.onclick=()=>{games.innerHTML=Array.from({length:5},(_,i)=>{const ns=pick();return '<div class="game"><div class="game-label">GAME '+(i+1)+'</div><div class="balls">'+ns.map(n=>'<div class="ball '+cls(n)+'">'+n+'</div>').join('')+'</div></div>'}).join('');ph.hidden=true;games.hidden=false;btn.textContent='다시 생성하기'};
-</script></body></html>
+</script><script src="/telemetry.js" defer></script></body></html>
