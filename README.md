@@ -28,8 +28,8 @@ Apply `supabase/migrations/202609270001_weekly_prompt_rules.sql` using the proje
 insert into public.prompt_admins(user_id) values ('VERIFIED_EXISTING_AUTH_USER_UUID') on conflict do nothing;
 ```
 
-No client may enroll itself. Ordinary signed-in users do not become administrators. Existing free-form prompts must be saved in a supported format through `/admin` before enabling the new frontend.
+No client may enroll itself. Ordinary signed-in users do not become administrators. The exact legacy template currently stored by this project (the standard six-number/five-game sentence followed by `모든 게임에 1번을 반드시 포함한다.`) is also supported. Other free-form prompts must be re-saved in a supported format.
 
 ## Verification
 
-Run `npm test` (Node 22 or newer). Tests check 5,000 games across combined constraints, unsupported/impossible rules, singleton solutions, and independent exhaustive combination counts. Deploy through the existing GitHub main → Vercel production integration after migration; test saving and generating on the production domain. Also verify anonymous writes and ordinary authenticated writes are rejected, with active rules publicly readable.
+Run `npm test` (Node 22 or newer). Tests check over 5,000 games across combined constraints, unsupported/impossible rules, singleton solutions, and independent exhaustive combination counts. Deploy through the existing GitHub main → Vercel production integration after migration; test saving and generating on the production domain. Also verify anonymous writes and ordinary authenticated writes are rejected, with active rules publicly readable.

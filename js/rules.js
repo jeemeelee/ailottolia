@@ -16,6 +16,9 @@ export function parseRules(prompt) {
   const rules = { include: [], exclude: [], min: 1, max: 45, odd: null, consecutive: true, groups: [] };
   let rest = prompt.normalize('NFKC').trim();
   if (/^(기본|무작위)$/.test(rest)) return rules;
+  // Exact legacy template already stored by this project; no numeric guessing.
+  rest = rest.replace(/^1부터\s*45까지의\s*숫자\s*중\s*중복\s*없이\s*6개의\s*번호를\s*선택하여\s*5게임을\s*생성한다\.\s*/, '');
+  rest = rest.replace(/모든\s*게임에\s*(\d+)번을\s*반드시\s*포함한다\./g, '$1 포함 /');
   const seen = new Set();
   function once(key) { if (seen.has(key)) fail('같은 종류의 조건을 여러 번 지정할 수 없습니다: ' + key); seen.add(key); }
   function consume(regex, apply) { rest = rest.replace(regex, (...args) => { apply(...args); return ' '; }); }

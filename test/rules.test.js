@@ -53,3 +53,10 @@ test('a single feasible combination remains generatable', () => {
  const {generator}=compilePrompt('범위 1~11 / 연속번호 제외');
  assert.equal(generator.total,1); assert.deepEqual(generator.pick(),[1,3,5,7,9,11]);
 });
+
+test('existing exact legacy template preserves its required number', () => {
+ const {rules,generator}=compilePrompt('1부터 45까지의 숫자 중 중복 없이 6개의 번호를 선택하여 5게임을 생성한다. 모든 게임에 1번을 반드시 포함한다.');
+ assert.deepEqual(rules.include,[1]);
+ for(let i=0;i<100;i++) assert.ok(generator.pick().includes(1));
+ assert.throws(()=>compilePrompt('모든 게임에 1번을 반드시 포함한다. 당첨 확률 높게'));
+});

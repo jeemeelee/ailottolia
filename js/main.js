@@ -14,7 +14,9 @@ btn.onclick = async () => {
   status.textContent = '';
   try {
     const active = await loadActivePrompt();
-    const {generator} = compilePrompt(active.prompt);
+    let generator;
+    try { ({generator} = compilePrompt(active.prompt)); }
+    catch { throw new Error('관리자 규칙을 확인해야 합니다. 잠시 후 다시 이용해주세요.'); }
     const results = Array.from({length: 5}, () => generator.pick());
     games.innerHTML = results.map((numbers, i) => `<div class="game"><div class="game-label">GAME ${i+1}</div><div class="balls">${numbers.map(n => `<span class="ball ${cls(n)}">${n}</span>`).join('')}</div></div>`).join('');
     status.textContent = '적용 규칙: ' + active.prompt;
