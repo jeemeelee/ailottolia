@@ -61,6 +61,8 @@ h1{
   font-size:clamp(34px,6vw,64px);
   line-height:1.05;
 }
+.round{margin:20px 0 6px;color:var(--blue);font-size:24px;font-weight:800}
+.round-note{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
 .sub{
   max-width:620px;
   margin:18px auto 28px;
@@ -175,6 +177,9 @@ footer{
   <div class="eyebrow">SMART NUMBER GENERATOR</div>
 
   <h1>AI LOTTO<br>NUMBER PICK</h1>
+  <p id="lottoRound" class="round" aria-live="polite"></p>
+  <p class="round-note">매주 토요일 오전 10시, 다음 회차로 변경됩니다. (한국 시간)</p>
+  <noscript>회차를 확인하려면 자바스크립트를 켜주세요.</noscript>
 
   <p class="sub">
     버튼을 누르면 1부터 45까지의 숫자 중 중복 없이 6개씩,
@@ -197,6 +202,7 @@ footer{
   AILOTTOLIA는 무작위 번호 조합을 제공하며 당첨을 보장하지 않습니다.<br>서비스 통계를 위해 브라우저 임의 식별자, 방문일, 생성 횟수와 접속 국가를 기록합니다.
 </footer>
 
+<script type="module" src="/js/round.js"></script>
 <script type="module" src="/js/main.js"></script>
 
 </body>
