@@ -47,6 +47,7 @@ button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:80
 <input id="password" type="password" placeholder="비밀번호">
 
 <button onclick="login()">로그인</button>
+<button type="button" onclick="resetPassword()">비밀번호 재설정</button>
 <div id="error"></div>
 </section>
 
@@ -155,7 +156,26 @@ async function login(){
   showDashboard();
 
 }
+async function resetPassword(){
+  const email = document.getElementById("email").value;
 
+  if(!email){
+    document.getElementById("error").textContent = "이메일을 입력해주세요.";
+    return;
+  }
+
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/admin"
+  });
+
+  if(error){
+    document.getElementById("error").textContent = "재설정 메일 발송에 실패했습니다.";
+    return;
+  }
+
+  document.getElementById("error").textContent =
+    "비밀번호 재설정 메일을 보냈습니다.";
+}
 async function logout(){
 
   await db.auth.signOut();
