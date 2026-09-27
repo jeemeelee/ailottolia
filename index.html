@@ -231,24 +231,34 @@ async function loadPrompt() {
 }
 
 function pick() {
-  const p = Array.from(
-    {length:45},
-    (_,i) => i + 1
-  );
+  const numbers = Array.from({ length: 45 }, (_, i) => i + 1);
 
-  for (let i = 44; i > 0; i--) {
-    const j = Math.floor(
-      Math.random() * (i + 1)
-    );
+  // 관리자 페이지에서 저장한 프롬프트의 숫자를 찾습니다.
+  const promptNumbers = (activePrompt.match(/\d+/g) || [])
+    .map(Number)
+    .filter(n => n >= 1 && n <= 45);
 
-    [p[i],p[j]] = [p[j],p[i]];
+  const uniquePromptNumbers = [...new Set(promptNumbers)];
+
+  // 프롬프트에 지정된 숫자가 있으면 우선 포함
+  const selected = uniquePromptNumbers.slice(0, 6);
+
+  // 나머지 숫자 랜덤 섞기
+  const remaining = numbers.filter(n => !selected.includes(n));
+
+  for (let i = remaining.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
   }
 
-  return p
-    .slice(0,6)
-    .sort((a,b) => a-b);
-}
+  // 총 6개 완성
+  while (selected.length < 6) {
+    selected.push(remaining.shift());
+  }
 
+  return selected.sort((a, b) => a - b);
+}
+  
 function cls(n) {
   return n <= 10 ? "yellow"
     : n <= 20 ? "blue"
