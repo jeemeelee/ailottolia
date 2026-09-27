@@ -8,6 +8,7 @@ Existing blue/white static site on Vercel; no build step, paid AI API, or servic
 
 Supported examples (combine with `/` or newlines):
 
+- `후보 번호: 3, 8, 12, 17, 22, 29, 34, 41` selects only from these numbers; choose at least six distinct numbers. The administrator can also use the 1–45 checkboxes, apply the selection to the prompt, then save. Existing additional conditions remain in effect.
 - `홀수 3개, 짝수 3개` or `홀짝 비율 3:3`
 - `7, 12 포함` or `포함 번호: 7, 12`
 - `1, 2 제외` or `제외 번호: 1, 2`

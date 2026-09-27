@@ -1,4 +1,4 @@
-export const RULE_HELP = '예: 홀수 3개, 짝수 3개 / 7 포함 / 1, 2 제외 / 범위 1~40 / 구간 1~10에서 2개 / 연속번호 제외. 조건은 줄바꿈 또는 /로 구분하세요. 제한 없이 생성하려면 기본 또는 무작위를 입력하세요.';
+export const RULE_HELP = '후보 번호: 3, 8, 12, 17, 22, 29, 34, 41 → 이 번호 안에서만 선택합니다. 예: 홀수 3개, 짝수 3개 / 7 포함 / 1, 2 제외 / 범위 1~40 / 구간 1~10에서 2개 / 연속번호 제외. 조건은 줄바꿈 또는 /로 구분하세요. 제한 없이 생성하려면 기본 또는 무작위를 입력하세요.';
 const fail = message => { throw new Error(message); };
 const number = value => {
   const n = Number(value);
@@ -13,7 +13,7 @@ const count = value => {
 export function parseRules(prompt) {
   if (typeof prompt !== 'string' || !prompt.trim()) fail('프롬프트를 입력하세요.');
   if (prompt.length > 2000) fail('프롬프트는 2,000자 이내로 입력하세요.');
-  const rules = { include: [], exclude: [], min: 1, max: 45, odd: null, consecutive: true, groups: [] };
+  const rules = { include: [], exclude: [], candidates: null, min: 1, max: 45, odd: null, consecutive: true, groups: [] };
   let rest = prompt.normalize('NFKC').trim();
   if (/^(기본|무작위)$/.test(rest)) return rules;
   // Exact legacy template already stored by this project; no numeric guessing.
@@ -22,6 +22,11 @@ export function parseRules(prompt) {
   const seen = new Set();
   function once(key) { if (seen.has(key)) fail('같은 종류의 조건을 여러 번 지정할 수 없습니다: ' + key); seen.add(key); }
   function consume(regex, apply) { rest = rest.replace(regex, (...args) => { apply(...args); return ' '; }); }
+  consume(/후보\s*(?:번호)?\s*:\s*(\d+(?:\s*,\s*\d+)*)/g, (_, list) => {
+    once('후보 번호');
+    rules.candidates = [...new Set(list.split(/\s*,\s*/).map(number))].sort((a,b) => a-b);
+    if (rules.candidates.length < 6) fail('후보 번호는 서로 다른 숫자 6개 이상 선택하세요.');
+  });
   consume(/(?:구간\s*)?(\d+)\s*[~–-]\s*(\d+)\s*(?:구간\s*)?(?:에서|중|:)\s*(\d+)\s*개/g, (_, a, b, c) => {
     const group = { min: number(a), max: number(b), count: count(c) };
     if (group.min > group.max) fail('구간의 시작은 끝보다 작거나 같아야 합니다.');
@@ -54,7 +59,7 @@ export function parseRules(prompt) {
   rules.include = [...new Set(rules.include)].sort((a,b) => a-b);
   rules.exclude = [...new Set(rules.exclude)].sort((a,b) => a-b);
   if (rules.include.length > 6) fail('포함 번호는 최대 6개입니다.');
-  if (rules.include.some(n => rules.exclude.includes(n) || n < rules.min || n > rules.max)) fail('포함 번호가 제외 번호 또는 번호 범위와 충돌합니다.');
+  if (rules.include.some(n => rules.exclude.includes(n) || (rules.candidates && !rules.candidates.includes(n)) || n < rules.min || n > rules.max)) fail('포함 번호가 후보 번호·제외 번호 또는 번호 범위와 충돌합니다.');
   return rules;
 }
 
@@ -62,7 +67,7 @@ export function parseRules(prompt) {
 // silent fallback: even a single possible combination is found deterministically.
 export function createGenerator(rules, random = Math.random) {
   const required = new Set(rules.include), excluded = new Set(rules.exclude);
-  const pool = Array.from({length: rules.max - rules.min + 1}, (_, i) => rules.min + i).filter(n => !excluded.has(n));
+  const pool = Array.from({length: rules.max - rules.min + 1}, (_, i) => rules.min + i).filter(n => !excluded.has(n) && (!rules.candidates || rules.candidates.includes(n)));
   const groups = rules.groups;
   const membership = pool.map(n => groups.findIndex(g => n >= g.min && n <= g.max));
   const suffixRequired = Array(pool.length + 1).fill(0);

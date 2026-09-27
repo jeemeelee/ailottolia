@@ -60,3 +60,15 @@ test('existing exact legacy template preserves its required number', () => {
  for(let i=0;i<100;i++) assert.ok(generator.pick().includes(1));
  assert.throws(()=>compilePrompt('모든 게임에 1번을 반드시 포함한다. 당첨 확률 높게'));
 });
+
+test('candidate pool strictly limits all games while composing with other rules', () => {
+ const prompt='후보 번호: 3, 4, 7, 12, 15, 22, 29, 34, 40, 41 / 홀수 3개 / 7 포함 / 41 제외 / 범위 1~40 / 구간 1~10에서 2개 / 연속번호 제외';
+ const {rules,generator}=compilePrompt(prompt);
+ for(let i=0;i<500;i++) {const ns=generator.pick(); matches(ns,rules); assert.ok(ns.every(n=>rules.candidates.includes(n)));}
+ assert.equal(compilePrompt('후보 번호: 3, 8, 15, 22, 31, 44').generator.total,1);
+ assert.deepEqual(compilePrompt('후보 번호: 3, 8, 15, 22, 31, 44').generator.pick(),[3,8,15,22,31,44]);
+ assert.equal(compilePrompt('후보 번호: 1, 2, 3, 4, 5, 6, 7, 8').generator.total,28);
+});
+test('invalid candidate pools and conflicts are rejected', () => {
+ for(const prompt of ['후보 번호: 1,2,3,4,5','후보 번호: 1,1,2,3,4,5','후보 번호: 1,2,3,4,5,46','후보 번호: 2,4,6,8,10,12 / 1 포함','후보 번호: 2,4,6,8,10,12 / 홀수 3개','후보 번호: 1,2,3,4,5,6 / 6 제외','후보 번호: 1,2,3,4,5,6 / 후보 번호: 7,8,9,10,11,12']) assert.throws(()=>compilePrompt(prompt));
+});

@@ -1,5 +1,5 @@
 import {db, loadActivePrompt} from './db.js';
-import {compilePrompt, RULE_HELP} from './rules.js';
+import {compilePrompt, parseRules, RULE_HELP} from './rules.js';
 const el = id => document.getElementById(id);
 const save = el('saveBtn');
 let admin = false;
@@ -18,7 +18,7 @@ async function checkSession() {
   el('dashboard').style.display = admin ? 'block' : 'none';
   save.disabled = !admin;
   if (admin) {
-    try { const active = await loadActivePrompt(); el('prompt').value = active.prompt; preview(); }
+    try { const active = await loadActivePrompt(); el('prompt').value = active.prompt; syncCandidates(); preview(); }
     catch (error) { feedback(error.message, true); }
   }
 }
@@ -29,7 +29,34 @@ function preview() {
     return true;
   } catch (error) { feedback(error.message, true); return false; }
 }
-el('prompt').addEventListener('input', preview);
+const candidateInputs = Array.from({length:45}, (_, i) => {
+  const label = document.createElement('label');
+  label.style.cssText = 'display:flex;flex-direction:column;align-items:center;padding:4px;background:#f5f8ff;border-radius:8px;cursor:pointer';
+  const input = document.createElement('input'); input.type = 'checkbox'; input.value = String(i+1);
+  input.setAttribute('aria-label', '후보 ' + (i+1) + '번'); input.style.cssText = 'width:auto;margin:0 0 4px;accent-color:#1668f2';
+  input.addEventListener('change', candidateCount);
+  label.append(input, document.createTextNode(String(i+1))); el('candidateNumbers').append(label); return input;
+});
+function candidateCount() {
+  const n = candidateInputs.filter(input => input.checked).length;
+  el('candidateCount').textContent = n + '개 선택 · 프롬프트에 반영한 뒤 저장하세요.';
+}
+function syncCandidates() {
+  try { const r = parseRules(el('prompt').value); candidateInputs.forEach(input => { input.checked = r.candidates?.includes(Number(input.value)) ?? false; }); candidateCount(); } catch {}
+}
+el('clearCandidates').onclick = () => { candidateInputs.forEach(input => {input.checked=false;}); candidateCount(); };
+el('applyCandidates').onclick = () => {
+  const numbers = candidateInputs.filter(input => input.checked).map(input => Number(input.value));
+  if (numbers.length && numbers.length < 6) { feedback('후보 번호는 서로 다른 숫자 6개 이상 선택하세요.', true); return; }
+  let prompt = el('prompt').value.normalize('NFKC').trim();
+  try { if (prompt) parseRules(prompt); } catch (error) { feedback(error.message, true); return; }
+  prompt = prompt.replace(/후보\s*(?:번호)?\s*:\s*\d+(?:\s*,\s*\d+)*/g, '').replace(/^[\s/,;]+|[\s/,;]+$/g, '');
+  if (/^(기본|무작위)$/.test(prompt)) prompt = '';
+  el('prompt').value = [prompt, numbers.length ? '후보 번호: ' + numbers.join(', ') : ''].filter(Boolean).join(' / ') || '무작위';
+  preview();
+};
+candidateCount();
+el('prompt').addEventListener('input', () => { syncCandidates(); preview(); });
 window.login = async () => {
   el('error').textContent = '';
   const {error} = await db.auth.signInWithPassword({email: el('email').value.trim(), password: el('password').value});
@@ -50,7 +77,7 @@ window.resetPassword = async () => {
 window.savePrompt = async () => {
   if (!admin || save.disabled || !preview()) return;
   const prompt = el('prompt').value.trim();
-  save.disabled = true; el('prompt').disabled = true; feedback('저장 중…');
+  save.disabled = true; el('candidatePicker').disabled = true; el('prompt').disabled = true; feedback('저장 중…');
   try {
     // One database transaction switches the active record. A failed write leaves
     // the previous rule intact; concurrent saves are serialized by the RPC.
@@ -60,7 +87,7 @@ window.savePrompt = async () => {
     if (active.prompt !== prompt) throw new Error('다른 관리자가 규칙을 변경했습니다. 새로고침 후 최신 규칙을 확인하세요.');
     feedback('✓ 새 프롬프트가 저장되고 적용되었습니다.');
   } catch (error) { feedback(error.message, true); }
-  finally { save.disabled = !admin; el('prompt').disabled = false; }
+  finally { el('candidatePicker').disabled = false; save.disabled = !admin; el('prompt').disabled = false; }
 };
 db.auth.onAuthStateChange(event => {
   if (event === 'SIGNED_OUT') { admin = false; el('dashboard').style.display = 'none'; el('login').style.display = 'block'; save.disabled = true; }
