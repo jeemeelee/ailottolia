@@ -160,6 +160,29 @@ footer{
     max-width:310px;
   }
 }
+
+/* Keep Korean phrases intact and balance lines at every viewport width. */
+body{font-family:Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+h1{font-size:clamp(2rem,6vw,4rem);line-height:1.12}
+h1,.eyebrow,.round-note,.sub,.placeholder,footer{word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.round-note,.sub{display:flex;flex-wrap:wrap;justify-content:center;column-gap:.35em;row-gap:.15em}
+.round-note span,.sub span{max-width:100%}
+.round-note{max-width:38rem;margin-inline:auto}
+.sub{font-size:16px;max-width:38rem}
+.placeholder{line-height:1.7}
+footer{line-height:1.8}
+.balls{flex-wrap:nowrap;gap:clamp(4px,1.3vw,8px);max-width:100%}
+.ball{flex:0 1 44px;min-width:0;aspect-ratio:1;height:auto}
+@media(max-width:640px){
+  main{margin-top:28px;margin-bottom:48px}
+  .round-note{max-width:24rem}
+  .sub{max-width:22rem;margin-top:20px}
+  .panel{padding:18px 12px}
+  .game{padding:10px 0;gap:10px}
+  .balls{width:min(100%,268px)}
+  .ball{flex-basis:38px}
+  footer{max-width:32rem;padding-inline:8px}
+}
 </style>
 </head>
 
@@ -178,20 +201,19 @@ footer{
 
   <h1>AI LOTTO<br>NUMBER PICK</h1>
   <p id="lottoRound" class="round" aria-live="polite"></p>
-  <p class="round-note">매주 일요일 오전 10시, 다음 회차로 변경됩니다. (한국 시간)</p>
+  <p class="round-note"><span>매주 일요일 오전 10시</span> <span>회차 변경 · 한국 시간</span></p>
   <noscript>회차를 확인하려면 자바스크립트를 켜주세요.</noscript>
 
   <p class="sub">
-    버튼을 누르면 1부터 45까지의 숫자 중 중복 없이 6개씩,
-    총 5게임의 추천 번호를 확인할 수 있습니다.
+    <span>1~45 중 중복 없이 6개씩,</span>
+    <span>추천 번호 5게임을 확인하세요.</span>
   </p>
 
   <button id="generateBtn">추천 번호 생성</button>
 
-  <p id="ruleStatus" class="sub" aria-live="polite"></p>
   <section class="panel" aria-live="polite">
     <div id="placeholder" class="placeholder">
-      추천 번호 생성 버튼을 누르면 5게임이 표시됩니다.
+      버튼을 눌러 추천 번호를 확인하세요.
     </div>
 
     <div id="games" class="games" hidden></div>
