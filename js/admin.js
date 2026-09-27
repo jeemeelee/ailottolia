@@ -23,9 +23,13 @@ async function checkSession() {
   }
 }
 function preview() {
+  el('groupSummary').textContent = '';
   try {
-    const {generator} = compilePrompt(el('prompt').value);
-    feedback('조건 확인 완료 · 가능한 조합 ' + generator.total.toLocaleString('ko-KR') + '개. 각 게임에 모두 적용됩니다.');
+    const {rules,generator} = compilePrompt(el('prompt').value);
+    if (rules.namedGroups.length) {
+      el('groupSummary').textContent = '해석한 그룹 조건\n' + rules.namedGroups.map(g => g.name + ' 그룹: [' + g.numbers.join(', ') + ']에서 ' + g.count + '개').join('\n') + '\n합계 6개 · 매 게임 중복 없음 · 5게임 생성\n겹치는 번호는 한 그룹에만 배정합니다.';
+      feedback('조건 확인 완료. 위의 해석이 맞는지 확인한 뒤 저장하세요.');
+    } else feedback('조건 확인 완료 · 가능한 조합 ' + generator.total.toLocaleString('ko-KR') + '개. 각 게임에 모두 적용됩니다.');
     return true;
   } catch (error) { feedback(error.message, true); return false; }
 }

@@ -17,8 +17,8 @@ btn.onclick = async () => {
     let generator;
     try { ({generator} = compilePrompt(active.prompt)); }
     catch { throw new Error('관리자 규칙을 확인해야 합니다. 잠시 후 다시 이용해주세요.'); }
-    const results = Array.from({length: 5}, () => generator.pick());
-    games.innerHTML = results.map((numbers, i) => `<div class="game"><div class="game-label">GAME ${i+1}</div><div class="balls">${numbers.map(n => `<span class="ball ${cls(n)}">${n}</span>`).join('')}</div></div>`).join('');
+    const results = Array.from({length: 5}, () => generator.pickDetailed ? generator.pickDetailed() : {numbers: generator.pick(), assignments: []});
+    games.innerHTML = results.map(({numbers, assignments}, i) => `<div class="game"><div class="game-label">GAME ${i+1}</div><div class="balls">${numbers.map(n => `<span class="ball ${cls(n)}">${n}</span>`).join('')}</div>${assignments.length ? '<div style="width:100%;color:var(--muted);font-size:13px">' + assignments.map(g=>g.name+' 그룹: '+g.numbers.join(', ')).join(' · ') + '</div>' : ''}</div>`).join('');
     status.textContent = '적용 규칙: ' + active.prompt;
     games.hidden = false;
     ph.style.display = 'none';
