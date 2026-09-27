@@ -34,3 +34,11 @@ No client may enroll itself. Ordinary signed-in users do not become administrato
 ## Verification
 
 Run `npm test` (Node 22 or newer). Tests check over 5,000 games across combined constraints, unsupported/impossible rules, singleton solutions, and independent exhaustive combination counts. Deploy through the existing GitHub main → Vercel production integration after migration; test saving and generating on the production domain. Also verify anonymous writes and ordinary authenticated writes are rejected, with active rules publicly readable.
+
+## Natural-language named groups
+
+Example: `A 그룹에서 12,3,43,23 에서 번호 2개를 선택하고 B 그룹에서 1,2,4,7,8 중 3개, C 그룹에서 15,20,35 중 1개를 선택해줘.`
+
+Groups are not fixed to A/B/C. Use arbitrary letter, number, or Korean names; names must be unique. Each clause includes a comma-separated candidate list and an exact count. Counts must sum to six. Define unused groups with count zero (within the existing 2,000-character prompt limit). The administrator sees the interpreted group summary before saving. No paid AI API is involved; only documented sentence patterns are recognized and residual unsupported wording is rejected.
+
+Overlapping candidates are allowed, but each selected number is assigned to exactly one group. A generated game shows its group assignments for verification. Group quotas describe these assignments, not the number of final game numbers that happen to occur in each candidate list. Memoized generation samples feasible assignments; when groups overlap, this does not promise a uniform distribution over distinct unlabelled combinations. Existing optional parity/include/exclude/range/interval/consecutive restrictions still apply.

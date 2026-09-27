@@ -72,3 +72,43 @@ test('candidate pool strictly limits all games while composing with other rules'
 test('invalid candidate pools and conflicts are rejected', () => {
  for(const prompt of ['후보 번호: 1,2,3,4,5','후보 번호: 1,1,2,3,4,5','후보 번호: 1,2,3,4,5,46','후보 번호: 2,4,6,8,10,12 / 1 포함','후보 번호: 2,4,6,8,10,12 / 홀수 3개','후보 번호: 1,2,3,4,5,6 / 6 제외','후보 번호: 1,2,3,4,5,6 / 후보 번호: 7,8,9,10,11,12']) assert.throws(()=>compilePrompt(prompt));
 });
+
+test('natural Korean group sentences select the requested number from each group', () => {
+ const prompts=[
+ 'A 그룹에서 12,3,43,23 에서 번호 2개를 선택하고 B 그룹에서 1,2,4,7,8 에서 번호 3개를 선택하고 C 그룹에서 15,20,35 중 1개를 선택해줘.',
+ 'A 그룹의 12, 3, 43, 23 중 2개, B 그룹의 1, 2, 4, 7, 8 중 3개, C 그룹의 15, 20, 35 중 1개를 골라 5게임 만들어줘.',
+ 'A 그룹에서 1,2 중 1개 / B 그룹에서 3,4 중 1개 / C 그룹에서 5,6 중 1개 / D 그룹에서 7,8 중 1개 / E 그룹에서 9,10 중 1개 / F 그룹에서 11,12 중 1개 / G 그룹에서 45 중 0개'
+ ];
+ for(const prompt of prompts) {
+  const {rules,generator}=compilePrompt(prompt);
+  for(let i=0;i<300;i++) {
+   const {numbers,assignments}=generator.pickDetailed(); matches(numbers,rules);
+   assert.equal(new Set(assignments.flatMap(g=>g.numbers)).size,6);
+   for(const assigned of assignments) {const g=rules.namedGroups.find(g=>g.name===assigned.name);assert.equal(assigned.numbers.length,g.count);assert.ok(assigned.numbers.every(n=>g.numbers.includes(n)));}
+  }
+ }
+});
+test('overlapping groups allocate each number once, even when every group shares the same pool', () => {
+ const prompt=Array.from({length:6},(_,i)=>`${String.fromCharCode(65+i)} 그룹에서 1,2,3,4,5,6 중 1개`).join(' / ');
+ const {generator}=compilePrompt(prompt); assert.equal(generator.total,720);
+ for(let i=0;i<100;i++) assert.deepEqual(generator.pick(),[1,2,3,4,5,6]);
+ const {generator:g}=compilePrompt('A 그룹에서 1,2 중 1개 / B 그룹에서 1 중 1개 / C 그룹에서 3,4,5,6 중 4개');
+ assert.equal(g.total,1);assert.deepEqual(g.pickDetailed().assignments[0].numbers,[2]);
+});
+test('group conditions compose with all existing restrictions',()=>{
+ const {rules,generator}=compilePrompt('A 그룹에서 1,3,5,7,9 중 3개 / B 그룹에서 12,14,16,18,20 중 3개 / 홀수 3개 / 7 포함 / 1 제외 / 범위 3~18 / 구간 1~10에서 3개 / 연속번호 제외');
+ for(let i=0;i<200;i++) matches(generator.pick(),rules);
+ assert.equal(compilePrompt('A 그룹에서 1,2,3,4 중 2개 / B 그룹에서 5,6,7,8,9 중 3개 / C 그룹에서 10,11,12 중 1개').generator.total,180);
+});
+test('reject group count, overlapping impossibility and unsupported wording without fallback',()=>{
+ for(const prompt of ['A 그룹에서 1,2,3 중 2개 / B 그룹에서 4,5,6 중 3개',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 4,5,6,7 중 4개',
+ 'A 그룹에서 1,2 중 3개 / B 그룹에서 3,4,5 중 3개',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 1,2,3 중 3개',
+ 'A 그룹에서 1,2,3 중 3개 / A 그룹에서 4,5,6 중 3개',
+ 'A 그룹에서 1,2,46 중 3개 / B 그룹에서 4,5,6 중 3개',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 4,5,6 중 3개 / 7 포함',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 4,5,6 중 3개 / 홀수 6개',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 4,5,6 중 3개. 행운을 높여줘',
+ 'A 그룹에서 1,2,3 중 3개 / B 그룹에서 4,5,6 중 3개. 10게임 만들어줘']) assert.throws(()=>compilePrompt(prompt),undefined,prompt);
+});
