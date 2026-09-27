@@ -91,6 +91,8 @@ button:hover{background:var(--dark)}
   color:#95a2b8;
   font-size:15px;
 }
+[hidden]{display:none!important}
+button:disabled{opacity:.6;cursor:wait}
 .games{
   display:grid;
   gap:14px;
@@ -181,6 +183,7 @@ footer{
 
   <button id="generateBtn">추천 번호 생성</button>
 
+  <p id="ruleStatus" class="sub" aria-live="polite"></p>
   <section class="panel" aria-live="polite">
     <div id="placeholder" class="placeholder">
       추천 번호 생성 버튼을 누르면 5게임이 표시됩니다.
@@ -194,115 +197,7 @@ footer{
   AILOTTOLIA는 무작위 번호 조합을 제공하며 당첨을 보장하지 않습니다.
 </footer>
 
-<script>
-const SUPABASE_URL =
-  "https://zhrpuxumusbfleuaugzh.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_CbbBb4fxUtRg3u1SR8vEnA_ku-gLdQ1";
-
-const db = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-const btn = document.getElementById("generateBtn");
-const games = document.getElementById("games");
-const ph = document.getElementById("placeholder");
-
-let activePrompt = "";
-
-async function loadPrompt() {
-  try {
-    const { data, error } = await db
-      .from("prompts")
-      .select("*")
-      .eq("active", true)
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    if (!error && data && data.length > 0) {
-      activePrompt = data[0].prompt || "";
-      console.log("활성 프롬프트:", activePrompt);
-    }
-  } catch (e) {
-    console.log("프롬프트 불러오기 실패", e);
-  }
-}
-
-function pick() {
-  const numbers = Array.from({ length: 45 }, (_, i) => i + 1);
-
-  // 관리자 페이지에서 저장한 프롬프트의 숫자를 찾습니다.
-  const promptNumbers = (activePrompt.match(/\d+/g) || [])
-    .map(Number)
-    .filter(n => n >= 1 && n <= 45);
-
-  const uniquePromptNumbers = [...new Set(promptNumbers)];
-
-  // 프롬프트에 지정된 숫자가 있으면 우선 포함
-  const selected = uniquePromptNumbers.slice(0, 6);
-
-  // 나머지 숫자 랜덤 섞기
-  const remaining = numbers.filter(n => !selected.includes(n));
-
-  for (let i = remaining.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
-  }
-
-  // 총 6개 완성
-  while (selected.length < 6) {
-    selected.push(remaining.shift());
-  }
-
-  return selected.sort((a, b) => a - b);
-}
-  
-function cls(n) {
-  return n <= 10 ? "yellow"
-    : n <= 20 ? "blue"
-    : n <= 30 ? "red"
-    : n <= 40 ? "gray"
-    : "green";
-}
-
-btn.onclick = () => {
-
-  games.innerHTML =
-    Array.from({length:5}, (_,i) => {
-
-      const ns = pick();
-
-      return `
-        <div class="game">
-
-          <div class="game-label">
-            GAME ${i+1}
-          </div>
-
-          <div class="balls">
-
-            ${ns.map(n =>
-              `<span class="ball ${cls(n)}">
-                ${n}
-              </span>`
-            ).join("")}
-
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
-
-  games.hidden = false;
-  ph.style.display = "none";
-  btn.textContent = "다시 생성하기";
-};
-
-loadPrompt();
-</script>
+<script type="module" src="/js/main.js"></script>
 
 </body>
 </html>

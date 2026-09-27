@@ -27,6 +27,8 @@ button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:80
 .note{font-size:12px;color:#9aa6ba;margin-top:8px}
 #error{color:#d33;font-size:13px;margin-top:10px}
 #success{color:#16833b;font-size:13px;margin-top:10px}
+[hidden]{display:none!important}
+button:disabled{opacity:.6;cursor:wait}
 #dashboard{display:none}
 @media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
 @media(max-width:430px){.stats{grid-template-columns:1fr}}
@@ -51,6 +53,7 @@ button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:80
 <div id="error"></div>
 </section>
 
+<section id="recovery" class="card" hidden><h2>새 비밀번호 설정</h2><input id="newPassword" aria-label="새 비밀번호" type="password" autocomplete="new-password"><button id="updatePassword">비밀번호 변경</button><p id="recoveryStatus" role="status"></p></section>
 <div id="dashboard">
 
 <h1>관리자 대시보드</h1>
@@ -94,12 +97,13 @@ button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:80
 <div class="card">
 <h2>이번 주 번호 생성 프롬프트</h2>
 
-<textarea id="prompt" placeholder="여기에 매주 적용할 프롬프트를 입력하세요."></textarea>
+<p id="ruleHelp" class="note" style="line-height:1.8"></p>
+<textarea aria-label="이번 주 번호 생성 프롬프트" maxlength="2000" id="prompt" placeholder="여기에 매주 적용할 프롬프트를 입력하세요."></textarea>
 
-<button class="right" onclick="savePrompt()">저장 및 적용</button>
+<button id="saveBtn" class="right" onclick="savePrompt()">저장 및 적용</button>
 
 <div style="clear:both"></div>
-<div id="success"></div>
+<div id="success" role="status" aria-live="polite"></div>
 
 <div class="note">
 저장하면 AILOTTOLIA의 활성 프롬프트가 변경됩니다.
@@ -111,157 +115,7 @@ button{border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:80
 </div>
 </main>
 
-<script>
-
-const SUPABASE_URL = "https://zhrpuxumusbfleuaugzh.supabase.co";
-const SUPABASE_KEY = "sb_publishable_CbbBb4fxUtRg3u1SR8vEnA_ku-gLdQ1";
-
-const db = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-async function checkSession(){
-
-  const {data} = await db.auth.getSession();
-
-  if(data.session){
-    showDashboard();
-  }
-
-}
-
-async function login(){
-
-  document.getElementById("error").textContent = "";
-
-  const email =
-  document.getElementById("email").value;
-
-  const password =
-  document.getElementById("password").value;
-
-  const {error} =
-  await db.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if(error){
-    document.getElementById("error").textContent =
-    "로그인 실패: 이메일 또는 비밀번호를 확인하세요.";
-    return;
-  }
-
-  showDashboard();
-
-}
-async function resetPassword(){
-  const email = document.getElementById("email").value;
-
-  if(!email){
-    document.getElementById("error").textContent = "이메일을 입력해주세요.";
-    return;
-  }
-
-  const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + "/admin"
-  });
-
-  if(error){
-    document.getElementById("error").textContent = "재설정 메일 발송에 실패했습니다.";
-    return;
-  }
-
-  document.getElementById("error").textContent =
-    "비밀번호 재설정 메일을 보냈습니다.";
-}
-async function logout(){
-
-  await db.auth.signOut();
-
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-
-}
-
-async function showDashboard(){
-
-  document.getElementById("login").style.display="none";
-  document.getElementById("dashboard").style.display="block";
-
-  await loadPrompt();
-
-}
-
-async function loadPrompt(){
-
-  const {data,error} = await db
-  .from("weekly_prompts")
-  .select("prompt")
-  .eq("is_active",true)
-  .order("created_at",{ascending:false})
-  .limit(1);
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  if(data && data.length){
-    document.getElementById("prompt").value =
-    data[0].prompt || "";
-  }
-
-}
-
-async function savePrompt(){
-
-  const text =
-  document.getElementById("prompt").value.trim();
-
-  if(!text){
-    alert("프롬프트를 입력하세요.");
-    return;
-  }
-
-  document.getElementById("success").textContent =
-  "저장 중...";
-
-  const {error:updateError} = await db
-  .from("weekly_prompts")
-  .update({is_active:false})
-  .eq("is_active",true);
-
-  if(updateError){
-    document.getElementById("success").textContent =
-    "저장 실패";
-    console.error(updateError);
-    return;
-  }
-
-  const {error} = await db
-  .from("weekly_prompts")
-  .insert({
-    prompt:text,
-    is_active:true
-  });
-
-  if(error){
-    document.getElementById("success").textContent =
-    "저장 실패";
-    console.error(error);
-    return;
-  }
-
-  document.getElementById("success").textContent =
-  "✓ 새 프롬프트가 저장되고 적용되었습니다.";
-
-}
-
-checkSession();
-
-</script>
+<script type="module" src="/js/admin.js"></script>
 
 </body>
 </html>
