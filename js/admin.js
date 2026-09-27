@@ -18,6 +18,7 @@ async function checkSession() {
   el('dashboard').style.display = admin ? 'block' : 'none';
   save.disabled = !admin;
   if (admin) {
+    loadStats();
     try { const active = await loadActivePrompt(); el('prompt').value = active.prompt; syncCandidates(); preview(); }
     catch (error) { feedback(error.message, true); }
   }
@@ -105,3 +106,28 @@ el('updatePassword').onclick = async () => {
   if (!error) { el('newPassword').value = ''; await checkSession(); }
 };
 checkSession().catch(() => { el('error').textContent = '연결 상태를 확인하고 다시 시도하세요.'; });
+
+let statsLoading = false;
+async function loadStats() {
+  if(!admin || statsLoading) return;
+  statsLoading=true; el('refreshStats').disabled=true;
+  el('statsStatus').textContent='통계 불러오는 중…';
+  try {
+    const {data,error}=await db.rpc('get_site_statistics').abortSignal(AbortSignal.timeout(12000));
+    if(error || !data) throw new Error('통계를 불러오지 못했습니다. 잠시 후 새로고침해주세요.');
+    if(!admin) return;
+    [['statToday','today'],['statWeek','week'],['statTotal','total'],['statGenerations','generations']].forEach(([id,key])=>{el(id).textContent=Number(data[key]).toLocaleString('ko-KR');});
+    const countries=data.countries || {};
+    const other=Object.entries(countries).filter(([code])=>!['KR','US','JP','ZZ'].includes(code)).reduce((sum,[,n])=>sum+Number(n),0);
+    el('countryStats').replaceChildren();
+    for(const [label,n] of [['대한민국',countries.KR||0],['미국',countries.US||0],['일본',countries.JP||0],['기타',other],['미확인',countries.ZZ||0]]) {
+      const row=document.createElement('p'); row.textContent=label+'　'+Number(n).toLocaleString('ko-KR'); el('countryStats').append(row);
+    }
+    const date=value=>new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});
+    el('statsStatus').textContent=(data.started_at?'집계 시작: '+date(data.started_at):'아직 기록된 방문이 없습니다.')+' · 갱신: '+date(data.updated_at);
+  } catch(error) {
+    if(admin) { ['statToday','statWeek','statTotal','statGenerations'].forEach(id=>{el(id).textContent='—';}); el('countryStats').textContent='통계 연결 오류'; el('statsStatus').textContent=error.message; }
+  } finally {statsLoading=false;el('refreshStats').disabled=false;}
+}
+el('refreshStats').onclick=loadStats;
+setInterval(()=>{if(document.visibilityState==='visible') loadStats();},60000);
