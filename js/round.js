@@ -1,5 +1,5 @@
-// User-defined schedule: 1244 now, 1245 from October 3, 2026, 10:00 KST.
-const FIRST_CHANGE = Date.parse('2026-10-03T10:00:00+09:00');
+// User-defined schedule: 1244 now, 1245 from October 4, 2026, 10:00 KST.
+const FIRST_CHANGE = Date.parse('2026-10-04T10:00:00+09:00');
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 export function getRound(now = Date.now()) {
   return now < FIRST_CHANGE ? 1244 : 1245 + Math.floor((now - FIRST_CHANGE) / WEEK);
