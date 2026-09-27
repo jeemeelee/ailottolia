@@ -64,34 +64,34 @@ button:disabled{opacity:.6;cursor:wait}
 <section class="stats">
 <div class="card">
 <div class="label">오늘 방문자</div>
-<div class="value">—</div>
+<div class="value" id="statToday">—</div>
 </div>
 
 <div class="card">
 <div class="label">이번 주 방문자</div>
-<div class="value">—</div>
+<div class="value" id="statWeek">—</div>
 </div>
 
 <div class="card">
 <div class="label">전체 방문자</div>
-<div class="value">—</div>
+<div class="value" id="statTotal">—</div>
 </div>
 
 <div class="card">
 <div class="label">번호 생성 횟수</div>
-<div class="value">—</div>
+<div class="value" id="statGenerations">—</div>
 </div>
 </section>
 
+<button type="button" id="refreshStats">통계 새로고침</button>
+<p id="statsStatus" class="note" role="status"></p>
+<p class="note">한국 시간 기준 · 이번 주는 월요일부터 · 같은 브라우저는 기간 내 1명으로 집계합니다. 브라우저 변경·저장정보 삭제 시 새 방문자로 집계될 수 있습니다. 번호 생성은 5게임 생성 성공을 1회로 셉니다.</p>
 <section class="grid">
 
 <div class="card">
 <h2>지역별 방문자</h2>
-<p>대한민국　—</p>
-<p>미국　—</p>
-<p>일본　—</p>
-<p>기타　—</p>
-<div class="note">통계 연결 후 자동 표시됩니다.</div>
+<div id="countryStats">불러오는 중…</div>
+<div class="note">누적 방문자 · 접속 국가 추정값이며 VPN에 따라 달라질 수 있습니다. 국가를 알 수 없으면 미확인으로 표시합니다.</div>
 </div>
 
 <div class="card">

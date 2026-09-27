@@ -1,3 +1,4 @@
+import {track} from './analytics.js';
 import {loadActivePrompt} from './db.js';
 import {compilePrompt} from './rules.js';
 const btn = document.getElementById('generateBtn');
@@ -22,8 +23,11 @@ btn.onclick = async () => {
     status.textContent = '적용 규칙: ' + active.prompt;
     games.hidden = false;
     ph.style.display = 'none';
+    track('generate');
   } catch (error) {
     games.replaceChildren();
     ph.textContent = error.message;
   } finally { btn.disabled = false; btn.textContent = '다시 생성하기'; }
 };
+
+track('visit');
