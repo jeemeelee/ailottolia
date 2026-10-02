@@ -16,6 +16,7 @@ async function checkSession() {
   }
   el('login').style.display = admin ? 'none' : 'block';
   el('dashboard').style.display = admin ? 'block' : 'none';
+  el('logoutBtn').hidden = !admin;
   save.disabled = !admin;
   if (admin) {
     loadStats();
@@ -71,7 +72,7 @@ window.login = async () => {
 };
 window.logout = async () => {
   await db.auth.signOut(); admin = false;
-  el('dashboard').style.display = 'none'; el('login').style.display = 'block'; save.disabled = true;
+  el('logoutBtn').hidden = true; el('dashboard').style.display = 'none'; el('login').style.display = 'block'; save.disabled = true;
 };
 window.resetPassword = async () => {
   const email = el('email').value.trim();
@@ -95,7 +96,7 @@ window.savePrompt = async () => {
   finally { el('candidatePicker').disabled = false; save.disabled = !admin; el('prompt').disabled = false; }
 };
 db.auth.onAuthStateChange(event => {
-  if (event === 'SIGNED_OUT') { admin = false; el('dashboard').style.display = 'none'; el('login').style.display = 'block'; save.disabled = true; }
+  if (event === 'SIGNED_OUT') { admin = false; el('logoutBtn').hidden = true; el('dashboard').style.display = 'none'; el('login').style.display = 'block'; save.disabled = true; }
   if (event === 'PASSWORD_RECOVERY') { el('recovery').hidden = false; }
 });
 el('updatePassword').onclick = async () => {
