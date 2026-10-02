@@ -130,4 +130,11 @@ async function loadStats() {
   } finally {statsLoading=false;el('refreshStats').disabled=false;}
 }
 el('refreshStats').onclick=loadStats;
-setInterval(()=>{if(document.visibilityState==='visible') loadStats();},60000);
+const refreshVisibleStats = () => { if (document.visibilityState === 'visible') void loadStats(); };
+window.addEventListener('focus', refreshVisibleStats);
+window.addEventListener('online', refreshVisibleStats);
+document.addEventListener('visibilitychange', refreshVisibleStats);
+window.addEventListener('storage', event => {
+  if (event.key === 'ailottolia_stats_updated_v1') refreshVisibleStats();
+});
+setInterval(refreshVisibleStats, 10000);
